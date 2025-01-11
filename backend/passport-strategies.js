@@ -8,60 +8,79 @@ const setupPassport = () => {
       {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: process.env.GOOGLE_REDIRECT_URI,
+        callbackURL: 'http://localhost:4000/auth/google/callback', // Make sure this matches exactly
       },
       async (accessToken, refreshToken, profile, done) => {
         const session = driver.session();
+        console.log('Google profile received:', {
+          id: profile.id,
+          displayName: profile.displayName,
+          emails: profile.emails
+        });
+
         try {
-          // Find or create user in the database
           const result = await session.run(
             `
             MERGE (u:User {googleId: $googleId})
-            ON CREATE SET u.id = randomUUID(), u.name = $name, u.email = $email
-            ON MATCH SET u.id = coalesce(u.id, randomUUID())
-            RETURN u {.*}
+            ON CREATE SET 
+              u.id = randomUUID(),
+              u.name = $name,
+              u.email = $email,
+              u.role = 'user',
+              u.createdAt = datetime()
+            WITH u
+            RETURN u {.id, .name, .email, .role, .googleId} as user
             `,
             {
               googleId: profile.id,
               name: profile.displayName,
-              email: profile.emails[0]?.value,
+              email: profile.emails[0].value,
             }
           );
 
-          const user = result.records[0]?.get('u').properties;
-          console.log('User from Neo4j:', user); // Debugging
+          const user = result.records[0].get('user');
+          console.log('Neo4j query result:', result.records[0]);
+          console.log('Created/Retrieved user:', user);
+
+          if (!user) {
+            return done(new Error('Failed to create user in database'));
+          }
+
           return done(null, user);
         } catch (error) {
+          console.error('Error in Google strategy:', error);
           return done(error);
         } finally {
-          session.close();
+          await session.close();
         }
       }
     )
   );
 
-  // Serialize user into session
   passport.serializeUser((user, done) => {
-    console.log('Serializing user:', user); // Debugging
-    done(null, user.id); // Store only the user ID in the session
+    console.log('Serializing user:', user);
+    done(null, user.id);
   });
 
-  // Deserialize user from session
   passport.deserializeUser(async (id, done) => {
-    console.log('Deserializing user with ID:', id); // Debugging
     const session = driver.session();
     try {
       const result = await session.run(
-        'MATCH (u:User {id: $id}) RETURN u',
+        `
+        MATCH (u:User {id: $id})
+        RETURN u {.id, .name, .email, .role, .googleId} as user
+        `,
         { id }
       );
-      const user = result.records[0]?.get('u').properties;
-      console.log('User retrieved from Neo4j:', user); // Debugging
+      
+      const user = result.records[0]?.get('user');
+      console.log('Deserialized user:', user);
       done(null, user);
     } catch (error) {
+      console.error('Error during deserialization:', error);
       done(error);
     } finally {
-      session.close();
+      await session.close();
     }
   });
 };
