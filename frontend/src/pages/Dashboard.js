@@ -1,14 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
+import { 
+  Menu, 
+  X, 
+  Home,
+  Users,
+  Settings,
+  Bell,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-react';
 
 const Dashboard = () => {
   const { user, loading, logout } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+      <div className="min-h-screen flex items-center justify-center bg-[#1a1a1a]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
       </div>
     );
   }
@@ -17,36 +29,125 @@ const Dashboard = () => {
     return <Navigate to="/login" replace />;
   }
 
-  return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold">Dashboard</h1>
-            </div>
-            <div className="flex items-center">
-              <span className="mr-4 text-gray-700">Welcome, {user.name}</span>
-              <button
-                onClick={logout}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+  const menuItems = [
+    { id: 'home', label: 'Home', icon: Home },
+    { id: 'users', label: 'Users', icon: Users },
+    { id: 'settings', label: 'Settings', icon: Settings },
+  ];
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="border-4 border-dashed border-gray-200 rounded-lg h-96 p-4">
-            {/* Add your dashboard content here */}
-            <h2 className="text-2xl font-bold mb-4">Your Content</h2>
-            <p>Welcome to your dashboard! Start adding your content here.</p>
+  return (
+    <div className="min-h-screen bg-[#1a1a1a]">
+      {/* Mobile menu button */}
+      <button
+        onClick={() => setMobileMenuOpen(true)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-black text-gray-200"
+      >
+        <Menu className="h-6 w-6" />
+      </button>
+
+      {/* Floating Sidebar */}
+      <div
+        className={`fixed inset-y-4 left-4 z-40 transform transition-all duration-300 ease-in-out
+          ${sidebarOpen ? 'w-64' : 'w-20'} 
+          ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          bg-black rounded-xl shadow-2xl shadow-black/30
+          flex flex-col
+          ${!sidebarOpen && 'items-center'}
+          h-[calc(100vh-2rem)]
+        `}
+      >
+        {/* Close button for mobile */}
+        <button
+          onClick={() => setMobileMenuOpen(false)}
+          className="lg:hidden absolute top-4 right-4 p-2 rounded-md bg-gray-800 text-gray-200"
+        >
+          <X className="h-6 w-6" />
+        </button>
+
+        {/* Toggle sidebar button */}
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="hidden lg:flex absolute -right-3 top-8 bg-blue-600 rounded-full p-1.5 text-white hover:bg-blue-700 transition-colors"
+        >
+          {sidebarOpen ? (
+            <ChevronLeft className="h-4 w-4" />
+          ) : (
+            <ChevronRight className="h-4 w-4" />
+          )}
+        </button>
+
+        {/* Sidebar content */}
+        <div className="flex flex-col h-full py-8 px-4">
+          <div className="flex items-center justify-center mb-8">
+            {sidebarOpen ? (
+              <h1 className="text-xl font-bold text-white">Dashboard</h1>
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
+                <span className="text-white font-bold">D</span>
+              </div>
+            )}
+          </div>
+
+          <nav className="flex-1 space-y-2">
+            {menuItems.map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                className={`w-full flex items-center px-4 py-3 rounded-lg text-gray-300 
+                  hover:bg-gray-800 hover:text-white transition-colors
+                  ${sidebarOpen ? 'justify-start' : 'justify-center'}`}
+              >
+                <Icon className="h-6 w-6" />
+                {sidebarOpen && <span className="ml-3">{label}</span>}
+              </button>
+            ))}
+          </nav>
+
+          <div className="pt-4 border-t border-gray-800">
+            <button
+              onClick={logout}
+              className={`w-full px-4 py-2.5 text-sm font-medium text-white bg-blue-600 
+                rounded-lg hover:bg-blue-700 transition-colors
+                ${sidebarOpen ? 'text-center' : 'px-2'}`}
+            >
+              {sidebarOpen ? 'Logout' : '←'}
+            </button>
           </div>
         </div>
-      </main>
+      </div>
+
+      {/* Main content */}
+      <div
+        className={`transition-all duration-300 ease-in-out
+          ${sidebarOpen ? 'lg:ml-72' : 'lg:ml-28'}
+          min-h-screen p-4 lg:p-8`}
+      >
+        {/* Top bar */}
+        <div className="flex justify-end mb-8 bg-black/40 p-4 rounded-xl">
+          <button className="p-2 rounded-full hover:bg-gray-800 transition-colors">
+            <Bell className="h-6 w-6 text-gray-300" />
+          </button>
+        </div>
+
+        {/* Content area */}
+        <div className="bg-black/40 rounded-xl p-6">
+          <h2 className="text-2xl font-bold mb-6 text-white">Welcome, {user.name}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Dashboard cards */}
+            <div className="bg-black/60 p-6 rounded-xl border border-gray-800">
+              <h3 className="text-lg font-medium mb-2 text-white">Card 1</h3>
+              <p className="text-gray-400">Content goes here</p>
+            </div>
+            <div className="bg-black/60 p-6 rounded-xl border border-gray-800">
+              <h3 className="text-lg font-medium mb-2 text-white">Card 2</h3>
+              <p className="text-gray-400">Content goes here</p>
+            </div>
+            <div className="bg-black/60 p-6 rounded-xl border border-gray-800">
+              <h3 className="text-lg font-medium mb-2 text-white">Card 3</h3>
+              <p className="text-gray-400">Content goes here</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
