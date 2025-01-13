@@ -1,0 +1,194 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Contact Validation Interface</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8">Contact Validation Dashboard</h1>
+
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white p-4 rounded-lg shadow">
+                <h3 class="text-lg font-semibold text-gray-700">Total Contacts</h3>
+                <p class="text-2xl font-bold text-blue-600" id="total-contacts">0</p>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow">
+                <h3 class="text-lg font-semibold text-gray-700">Pending Validation</h3>
+                <p class="text-2xl font-bold text-yellow-600" id="pending-count">0</p>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow">
+                <h3 class="text-lg font-semibold text-gray-700">Success Rate</h3>
+                <p class="text-2xl font-bold text-green-600" id="success-rate">0%</p>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow">
+                <h3 class="text-lg font-semibold text-gray-700">Learning Progress</h3>
+                <p class="text-2xl font-bold text-purple-600" id="learning-progress">0%</p>
+            </div>
+        </div>
+
+        <!-- Contact List -->
+        <div class="bg-white rounded-lg shadow mb-8">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold">Contacts to Validate</h2>
+            </div>
+            <div class="divide-y divide-gray-200" id="contact-list">
+                <!-- Contact cards will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Failure Modal -->
+        <div id="failure-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="mt-3">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Mark Contact as Failed</h3>
+                    <input type="hidden" id="failure-contact-id">
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700">Failure Type</label>
+                        <select id="failure-type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                            <option value="wrong_person">Wrong Person</option>
+                            <option value="wrong_email">Wrong Email</option>
+                            <option value="wrong_title">Wrong Title</option>
+                            <option value="invalid_data">Invalid Data</option>
+                            <option value="not_found">Not Found</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700">Notes</label>
+                        <textarea id="failure-notes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></textarea>
+                    </div>
+
+                    <div class="flex justify-end space-x-3">
+                        <button onclick="closeFailureModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md">Cancel</button>
+                        <button onclick="submitFailure()" class="px-4 py-2 bg-red-600 text-white rounded-md">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function renderContact(contact) {
+            return `
+                <div class="p-6 hover:bg-gray-50" id="contact-${contact.id}">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-lg font-semibold">${contact.name}</h3>
+                            <p class="text-gray-600">${contact.role} at ${contact.school}</p>
+                            <p class="text-gray-600">${contact.email}</p>
+                            <p class="text-sm text-gray-500 mt-2">Found: ${new Date(contact.found_date).toLocaleDateString()}</p>
+                        </div>
+                        <div class="space-x-2">
+                            <button onclick="validateContact(${contact.id}, true)" 
+                                    class="px-4 py-2 bg-green-600 text-white rounded-md">
+                                Valid
+                            </button>
+                            <button onclick="showFailureModal(${contact.id})" 
+                                    class="px-4 py-2 bg-red-600 text-white rounded-md">
+                                Invalid
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showFailureModal(contactId) {
+            document.getElementById('failure-contact-id').value = contactId;
+            document.getElementById('failure-modal').classList.remove('hidden');
+        }
+
+        function closeFailureModal() {
+            document.getElementById('failure-modal').classList.add('hidden');
+            document.getElementById('failure-notes').value = '';
+        }
+
+        function submitFailure() {
+            const contactId = document.getElementById('failure-contact-id').value;
+            const failureType = document.getElementById('failure-type').value;
+            const notes = document.getElementById('failure-notes').value;
+
+            fetch('/mark_failure', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    contact_id: contactId,
+                    failure_type: failureType,
+                    notes: notes
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove contact card with animation
+                    const card = document.getElementById(`contact-${contactId}`);
+                    card.style.backgroundColor = '#FEE2E2';
+                    setTimeout(() => {
+                        card.remove();
+                        updateStats();
+                    }, 500);
+                    closeFailureModal();
+                }
+            });
+        }
+
+        function validateContact(contactId, isValid) {
+            fetch('/validate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    contact_id: contactId,
+                    is_valid: isValid
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const card = document.getElementById(`contact-${contactId}`);
+                    card.style.backgroundColor = '#DEF7EC';
+                    setTimeout(() => {
+                        card.remove();
+                        updateStats();
+                    }, 500);
+                }
+            });
+        }
+
+        function updateStats() {
+            fetch('/stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('total-contacts').textContent = data.total;
+                    document.getElementById('pending-count').textContent = data.pending;
+                    document.getElementById('success-rate').textContent = `${data.success_rate}%`;
+                    document.getElementById('learning-progress').textContent = `${data.learning_progress}%`;
+                });
+        }
+
+        function loadContacts() {
+            fetch('/contacts')
+                .then(response => response.json())
+                .then(data => {
+                    const contactList = document.getElementById('contact-list');
+                    contactList.innerHTML = data.contacts.map(renderContact).join('');
+                    updateStats();
+                });
+        }
+
+        // Initial load
+        loadContacts();
+        
+        // Refresh every 5 minutes
+        setInterval(loadContacts, 300000);
+    </script>
+</body>
+</html>
