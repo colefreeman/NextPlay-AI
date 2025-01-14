@@ -129,22 +129,9 @@ const Dashboard = () => {
         </div>
 
         {/* Content area */}
-        <div className="bg-black/40 rounded-xl p-6">
-          <h2 className="text-2xl font-bold mb-6 text-white">Welcome, {user.name}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Dashboard cards */}
-            <div className="bg-black/60 p-6 rounded-xl border border-gray-800">
-              <h3 className="text-lg font-medium mb-2 text-white">Card 1</h3>
-              <p className="text-gray-400">Content goes here</p>
-            </div>
-            <div className="bg-black/60 p-6 rounded-xl border border-gray-800">
-              <h3 className="text-lg font-medium mb-2 text-white">Card 2</h3>
-              <p className="text-gray-400">Content goes here</p>
-            </div>
-            <div className="bg-black/60 p-6 rounded-xl border border-gray-800">
-              <h3 className="text-lg font-medium mb-2 text-white">Card 3</h3>
-              <p className="text-gray-400">Content goes here</p>
-            </div>
+        <div className="bg-black/40 rounded-xl p-6 w-full max-w-4xl mx-auto h-[450px]">  {/* Adjust h-[800px] to your desired height */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 h-full">
+            {/* Your content will go here */}
           </div>
         </div>
       </div>
