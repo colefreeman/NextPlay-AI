@@ -7,7 +7,6 @@ import {
   Home,
   Users,
   Settings,
-  Bell,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
@@ -123,13 +122,13 @@ const Dashboard = () => {
       >
         {/* Top bar */}
         <div className="flex justify-end mb-8 bg-black/40 p-4 rounded-xl">
-          <button className="p-2 rounded-full hover:bg-gray-800 transition-colors">
-            <Bell className="h-6 w-6 text-gray-300" />
-          </button>
+              <div>
+                <p>Test Test2</p>
+              </div>
         </div>
 
         {/* Content area */}
-        <div className="bg-black/40 rounded-xl p-6 w-full max-w-4xl mx-auto h-[450px]">  {/* Adjust h-[800px] to your desired height */}
+        <div className="bg-black/40 rounded-xl p-6 w-full max-w-4xl mx-auto h-[450px]">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 h-full">
             {/* Your content will go here */}
           </div>
