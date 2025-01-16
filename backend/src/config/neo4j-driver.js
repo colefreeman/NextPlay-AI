@@ -18,8 +18,3 @@ const verifyConnection = async () => {
     await session.close();
   }
 };
-
-// Call verify connection when the driver is initialized
-verifyConnection();
-
-module.exports = { driver };

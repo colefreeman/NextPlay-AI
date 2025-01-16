@@ -1,6 +1,6 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const { driver } = require('./neo4j-driver');
+const { driver } = require('./src/config/neo4j-driver');
 
 const setupPassport = () => {
   passport.use(

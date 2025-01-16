@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
-const { driver } = require('./neo4j-driver');
+const { driver } = require('./src/config/neo4j-driver');
 
 const resolvers = {
   Query: {

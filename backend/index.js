@@ -1,10 +1,11 @@
+require('dotenv').config();
+
 const express = require('express');
 const { ApolloServer } = require('apollo-server-express');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const passport = require('passport');
 const cors = require('cors'); // Add this import
-require('dotenv').config();
 const typeDefs = require('./schema');
 const resolvers = require('./resolvers');
 const setupPassport = require('./passport-strategies');
