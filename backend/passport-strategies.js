@@ -3,20 +3,18 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { driver } = require('./src/config/neo4j-driver');
 
 const setupPassport = () => {
+  console.log('Setting up Google Strategy...');
+  
   passport.use(
     new GoogleStrategy(
       {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: 'http://localhost:4000/auth/google/callback', // Make sure this matches exactly
+        callbackURL: 'http://localhost:4000/auth/google/callback'
       },
       async (accessToken, refreshToken, profile, done) => {
+        console.log('Google callback received with profile:', profile.id);
         const session = driver.session();
-        console.log('Google profile received:', {
-          id: profile.id,
-          displayName: profile.displayName,
-          emails: profile.emails
-        });
 
         try {
           const result = await session.run(
@@ -39,10 +37,10 @@ const setupPassport = () => {
           );
 
           const user = result.records[0].get('user');
-          console.log('Neo4j query result:', result.records[0]);
-          console.log('Created/Retrieved user:', user);
+          console.log('User from database:', user);
 
           if (!user) {
+            console.error('No user returned from database');
             return done(new Error('Failed to create user in database'));
           }
 
@@ -58,11 +56,12 @@ const setupPassport = () => {
   );
 
   passport.serializeUser((user, done) => {
-    console.log('Serializing user:', user);
+    console.log('Serializing user:', user.id);
     done(null, user.id);
   });
 
   passport.deserializeUser(async (id, done) => {
+    console.log('Deserializing user:', id);
     const session = driver.session();
     try {
       const result = await session.run(
@@ -74,7 +73,12 @@ const setupPassport = () => {
       );
       
       const user = result.records[0]?.get('user');
-      console.log('Deserialized user:', user);
+      if (!user) {
+        console.log('No user found during deserialization');
+        return done(null, false);
+      }
+      
+      console.log('User found:', user);
       done(null, user);
     } catch (error) {
       console.error('Error during deserialization:', error);

@@ -11,7 +11,10 @@ export const AuthProvider = ({ children }) => {
   const checkAuthStatus = useCallback(async () => {
     try {
       const response = await fetch('http://localhost:4000/api/auth/status', {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json'
+        }
       });
       
       if (response.ok) {
@@ -44,18 +47,33 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await fetch('http://localhost:4000/auth/logout', {
-        credentials: 'include'
+      const response = await fetch('http://localhost:4000/auth/logout', {
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json'
+        }
       });
-      setUser(null);
-      navigate('/login');
+
+      if (response.ok) {
+        setUser(null);
+        navigate('/login');
+      } else {
+        console.error('Logout failed:', await response.text());
+      }
     } catch (error) {
       console.error('Logout failed:', error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, checkAuthStatus }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      login, 
+      logout, 
+      checkAuthStatus,
+      isAuthenticated: !!user 
+    }}>
       {children}
     </AuthContext.Provider>
   );
