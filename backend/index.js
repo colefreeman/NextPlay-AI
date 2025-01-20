@@ -52,6 +52,8 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use('/api/profile', profileRoutes);
+
 // Auth Routes
 app.get('/auth/google',
   (req, res, next) => {
