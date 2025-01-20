@@ -1,21 +1,22 @@
 // frontend/src/components/Profile/ProfilePage.js
 import React, { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom'; // Add this import
 import { useAuth } from '../../contexts/AuthContext';
-import Navbar from '../Layout/Navbar';  // Updated path
-import Sidebar from '../Layout/Sidebar'; // Updated path
+import Navbar from '../Layout/Navbar';
+import Sidebar from '../Layout/Sidebar';
 import ProfileHeader from './ProfileHeader';
 import ProfileContent from './ProfileContent';
 
 const ProfilePage = () => {
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   
+  console.log("ProfilePage - Current User:", user); // Debug log
+  
   const [userData, setUserData] = useState({
-    name: currentUser?.email?.split('@')[0] || '',
-    email: currentUser?.email || '',
-    joinedDate: '2025-01-19 19:51:41', // Updated timestamp
-    role: '',
+    name: user?.name || '',
+    email: user?.email || '',
+    joinedDate: '2025-01-19 19:51:41',
+    role: user?.role || '',
     bio: '',
     location: '',
     skills: [],
@@ -24,13 +25,14 @@ const ProfilePage = () => {
 
   const handleSave = async (updatedData) => {
     try {
-      const response = await fetch('/api/profile', {
+      const response = await fetch('http://localhost:4000/api/profile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
-          userId: currentUser.uid,
+          userId: user.id,
           ...updatedData
         })
       });
@@ -46,18 +48,25 @@ const ProfilePage = () => {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!currentUser?.uid) return;
+      if (!user?.id) {
+        console.log("No user ID available");
+        return;
+      }
 
       try {
-        const response = await fetch(`/api/profile/${currentUser.uid}`);
+        console.log("Fetching profile for user:", user.id);
+        const response = await fetch(`http://localhost:4000/api/profile/${user.id}`, {
+          credentials: 'include'
+        });
         if (response.ok) {
           const data = await response.json();
+          console.log("Profile data received:", data);
           if (data) {
             setUserData(prevData => ({
               ...prevData,
               ...data,
-              email: currentUser.email,
-              name: data.name || currentUser.email.split('@')[0]
+              email: user.email,
+              name: data.name || user.name
             }));
           }
         }
@@ -66,12 +75,10 @@ const ProfilePage = () => {
       }
     };
 
-    fetchProfile();
-  }, [currentUser]);
-
-  if (!currentUser) {
-    return <Navigate to="/login" />;
-  }
+    if (user) {
+      fetchProfile();
+    }
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-[#1a1a1a]">
