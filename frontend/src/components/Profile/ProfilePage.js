@@ -1,6 +1,5 @@
 // frontend/src/components/Profile/ProfilePage.js
 import React, { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import Navbar from '../Layout/Navbar';
 import Sidebar from '../Layout/Sidebar';
@@ -9,14 +8,14 @@ import ProfileContent from './ProfileContent';
 
 const ProfilePage = () => {
   const { user } = useAuth();
-  console.log("Profile Page User:", user);  // Added debug log
+  console.log("ProfilePage - Current User:", user); // Debug log
   const [isEditing, setIsEditing] = useState(false);
   
   const [userData, setUserData] = useState({
-    name: user?.email?.split('@')[0] || '',
+    name: user?.name || '',
     email: user?.email || '',
     joinedDate: '2025-01-19 19:51:41',
-    role: '',
+    role: user?.role || '',
     bio: '',
     location: '',
     skills: [],
@@ -25,11 +24,12 @@ const ProfilePage = () => {
 
   const handleSave = async (updatedData) => {
     try {
-      const response = await fetch('/api/profile', {
+      const response = await fetch('http://localhost:4000/api/profile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           userId: user.id,
           ...updatedData
@@ -47,18 +47,25 @@ const ProfilePage = () => {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!user?.id) return;
+      if (!user?.id) {
+        console.log("No user ID available");
+        return;
+      }
 
       try {
-        const response = await fetch(`/api/profile/${user.id}`);
+        console.log("Fetching profile for user:", user.id);
+        const response = await fetch(`http://localhost:4000/api/profile/${user.id}`, {
+          credentials: 'include'
+        });
         if (response.ok) {
           const data = await response.json();
+          console.log("Profile data received:", data);
           if (data) {
             setUserData(prevData => ({
               ...prevData,
               ...data,
               email: user.email,
-              name: data.name || user.email.split('@')[0]
+              name: data.name || user.name
             }));
           }
         }
@@ -67,12 +74,10 @@ const ProfilePage = () => {
       }
     };
 
-    fetchProfile();
+    if (user) {
+      fetchProfile();
+    }
   }, [user]);
-
-  if (!user) {
-    return <Navigate to="/login" />;
-  }
 
   return (
     <div className="min-h-screen bg-[#1a1a1a]">

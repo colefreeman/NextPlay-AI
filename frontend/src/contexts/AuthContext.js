@@ -8,6 +8,10 @@ const ProtectedRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
   const location = useLocation();
 
+  console.log("ProtectedRoute - Current location:", location.pathname);
+  console.log("ProtectedRoute - User:", user);
+  console.log("ProtectedRoute - Loading:", loading);
+
   if (loading) {
     return <div>Loading...</div>; // You can replace this with a proper loading component
   }
@@ -38,9 +42,11 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation(); // Add this
 
   const checkAuthStatus = useCallback(async () => {
     try {
+      console.log("Checking auth status on path:", location.pathname); // Debug log
       const response = await fetch('http://localhost:4000/api/auth/status', {
         credentials: 'include',
         headers: {
@@ -50,13 +56,14 @@ export const AuthProvider = ({ children }) => {
       
       if (response.ok) {
         const userData = await response.json();
+        console.log("Auth status success, user data:", userData); // Debug log
         setUser(userData);
-        if (window.location.pathname === '/login') {
-          navigate('/dashboard');
-        }
+        console.log("Current path:", location.pathname); // Debug log
+        // Remove automatic redirects completely
       } else {
+        console.log("Auth status failed - not authenticated"); // Debug log
         setUser(null);
-        if (window.location.pathname === '/dashboard') {
+        if (location.pathname !== '/login' && location.pathname !== '/register') {
           navigate('/login');
         }
       }
@@ -66,7 +73,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [navigate]);
+  }, [navigate, location]);
 
   useEffect(() => {
     checkAuthStatus();
@@ -96,7 +103,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Enhanced context value with route protection components
   const value = {
     user,
     loading,
@@ -107,6 +113,9 @@ export const AuthProvider = ({ children }) => {
     ProtectedRoute,
     PublicRoute
   };
+
+  console.log("AuthProvider - Current user:", user); // Debug log
+  console.log("AuthProvider - Current path:", location.pathname); // Debug log
 
   return (
     <AuthContext.Provider value={value}>
@@ -123,5 +132,4 @@ export const useAuth = () => {
   return context;
 };
 
-// Export route protection components for direct use
 export { ProtectedRoute, PublicRoute };
