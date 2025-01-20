@@ -8,9 +8,8 @@ import ProfileContent from './ProfileContent';
 
 const ProfilePage = () => {
   const { user } = useAuth();
-  const [isEditing, setIsEditing] = useState(false);
-  
   console.log("ProfilePage - Current User:", user); // Debug log
+  const [isEditing, setIsEditing] = useState(false);
   
   const [userData, setUserData] = useState({
     name: user?.name || '',

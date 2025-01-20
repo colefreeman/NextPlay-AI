@@ -24,7 +24,7 @@ const App = () => {
                 <Register />
               </PublicRoute>
             } />
-            
+
             {/* Protected routes */}
             <Route path="/dashboard" element={
               <ProtectedRoute>
@@ -36,7 +36,7 @@ const App = () => {
                 <ProfilePage />
               </ProtectedRoute>
             } />
-            
+
             {/* Default redirect */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
