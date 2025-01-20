@@ -9,6 +9,7 @@ const cors = require('cors');
 const typeDefs = require('./schema');
 const resolvers = require('./resolvers');
 const setupPassport = require('./passport-strategies');
+const profileRoutes = require('./routes/profile');
 
 // Initialize Express app and Apollo Server
 const app = express();
