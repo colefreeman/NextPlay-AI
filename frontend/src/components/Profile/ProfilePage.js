@@ -14,7 +14,7 @@ const ProfilePage = () => {
   const [userData, setUserData] = useState({
     name: user?.name || '',
     email: user?.email || '',
-    joinedDate: '2025-01-19 19:51:41',
+    joinedDate: new Date().toISOString().split('T')[0], // Just the date part
     role: user?.role || '',
     bio: '',
     location: '',
@@ -24,6 +24,9 @@ const ProfilePage = () => {
 
   const handleSave = async (updatedData) => {
     try {
+      // Remove any datetime objects from the data
+      const { updatedAt, ...cleanData } = updatedData;
+      
       const response = await fetch('http://localhost:4000/api/profile', {
         method: 'POST',
         headers: {
@@ -32,12 +35,14 @@ const ProfilePage = () => {
         credentials: 'include',
         body: JSON.stringify({
           userId: user.id,
-          ...updatedData
+          ...cleanData,
+          joinedDate: new Date().toISOString().split('T')[0] // Just the date part
         })
       });
 
       if (response.ok) {
-        setUserData(updatedData);
+        const savedData = await response.json();
+        setUserData(savedData);
         setIsEditing(false);
       }
     } catch (error) {
