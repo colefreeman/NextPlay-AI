@@ -1,7 +1,7 @@
 // src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, ProtectedRoute, PublicRoute } from './contexts/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -13,16 +13,32 @@ const App = () => {
       <Router>
         <AuthProvider>
           <Routes>
-            {/* Keep your existing routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            
-            {/* Add the new profile route */}
-            <Route path="/profile" element={<ProfilePage />} />
-            
-            {/* Keep your default redirect */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            {/* Public routes */}
+            <Route path="/login" element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            } />
+            <Route path="/register" element={
+              <PublicRoute>
+                <Register />
+              </PublicRoute>
+            } />
+
+            {/* Protected routes */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            } />
+
+            {/* Default redirect */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </AuthProvider>
       </Router>

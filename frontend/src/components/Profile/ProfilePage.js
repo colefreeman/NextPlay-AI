@@ -1,20 +1,21 @@
 // frontend/src/components/Profile/ProfilePage.js
 import React, { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom'; // Add this import
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import Navbar from '../Layout/Navbar';  // Updated path
-import Sidebar from '../Layout/Sidebar'; // Updated path
+import Navbar from '../Layout/Navbar';
+import Sidebar from '../Layout/Sidebar';
 import ProfileHeader from './ProfileHeader';
 import ProfileContent from './ProfileContent';
 
 const ProfilePage = () => {
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
+  console.log("Profile Page User:", user);  // Added debug log
   const [isEditing, setIsEditing] = useState(false);
   
   const [userData, setUserData] = useState({
-    name: currentUser?.email?.split('@')[0] || '',
-    email: currentUser?.email || '',
-    joinedDate: '2025-01-19 19:51:41', // Updated timestamp
+    name: user?.email?.split('@')[0] || '',
+    email: user?.email || '',
+    joinedDate: '2025-01-19 19:51:41',
     role: '',
     bio: '',
     location: '',
@@ -30,7 +31,7 @@ const ProfilePage = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: currentUser.uid,
+          userId: user.id,
           ...updatedData
         })
       });
@@ -46,18 +47,18 @@ const ProfilePage = () => {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!currentUser?.uid) return;
+      if (!user?.id) return;
 
       try {
-        const response = await fetch(`/api/profile/${currentUser.uid}`);
+        const response = await fetch(`/api/profile/${user.id}`);
         if (response.ok) {
           const data = await response.json();
           if (data) {
             setUserData(prevData => ({
               ...prevData,
               ...data,
-              email: currentUser.email,
-              name: data.name || currentUser.email.split('@')[0]
+              email: user.email,
+              name: data.name || user.email.split('@')[0]
             }));
           }
         }
@@ -67,9 +68,9 @@ const ProfilePage = () => {
     };
 
     fetchProfile();
-  }, [currentUser]);
+  }, [user]);
 
-  if (!currentUser) {
+  if (!user) {
     return <Navigate to="/login" />;
   }
 
