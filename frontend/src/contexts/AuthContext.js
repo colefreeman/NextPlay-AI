@@ -1,7 +1,38 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate, useLocation } from 'react-router-dom';
 
 const AuthContext = createContext(null);
+
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useContext(AuthContext);
+  const location = useLocation();
+
+  if (loading) {
+    return <div>Loading...</div>; // You can replace this with a proper loading component
+  }
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return children;
+};
+
+// Public Route Component
+const PublicRoute = ({ children }) => {
+  const { user, loading } = useContext(AuthContext);
+
+  if (loading) {
+    return <div>Loading...</div>; // You can replace this with a proper loading component
+  }
+
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -65,15 +96,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Enhanced context value with route protection components
+  const value = {
+    user,
+    loading,
+    login,
+    logout,
+    checkAuthStatus,
+    isAuthenticated: !!user,
+    ProtectedRoute,
+    PublicRoute
+  };
+
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      loading, 
-      login, 
-      logout, 
-      checkAuthStatus,
-      isAuthenticated: !!user 
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
@@ -86,3 +122,6 @@ export const useAuth = () => {
   }
   return context;
 };
+
+// Export route protection components for direct use
+export { ProtectedRoute, PublicRoute };
