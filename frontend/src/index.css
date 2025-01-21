@@ -58,13 +58,27 @@ body {
 .navbar {
   display: flex;
   justify-content: space-between;
-  padding: 1rem;
+  align-items: center; /* This centers items vertically */
+  height: 64px; /* Set a fixed height */
+  padding: 0 1rem; /* Changed from 1rem to only have horizontal padding */
   background-color: #333;
   color: white;
 }
 
-.navbar a {
-  color: white;
-  text-decoration: none;
-  margin: 0 10px;
+.logo {
+  height: 36px; /* Make sure this is less than navbar height */
+  width: auto;
+  display: block; /* Prevents any unwanted spacing */
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  height: 100%; /* Fill navbar height */
+}
+
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* More consistent spacing between links */
 }

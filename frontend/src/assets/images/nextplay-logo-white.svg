@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40">
+  <!-- Background circle representing "play" button -->
+  <circle cx="25" cy="20" r="18" fill="#2563eb"/>
+  
+  <!-- Play triangle -->
+  <path d="M18.5 11 L18.5 29 L35.5 20 Z" fill="white"/>
+  
+  <!-- Text "NextPlay" and "AI" on same line with minimal space -->
+  <text x="47" y="27" font-family="Arial" font-size="24" font-weight="bold">
+    <tspan fill="#FFFFFF">NextPlay</tspan>
+    <tspan fill="#2563eb" dx="-5">AI</tspan>
+  </text>
+</svg>
