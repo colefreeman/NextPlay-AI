@@ -4,7 +4,10 @@ import { setContext } from '@apollo/client/link/context';
 
 const httpLink = createHttpLink({
   uri: 'http://localhost:4000/graphql',
-  credentials: 'include'
+  credentials: 'include',
+  fetchOptions: {
+    mode: 'cors',
+  }
 });
 
 const authLink = setContext((_, { headers }) => {
@@ -16,7 +19,8 @@ const authLink = setContext((_, { headers }) => {
       ...headers,
       credentials: 'include',
       // authorization: token ? `Bearer ${token}` : "", // Uncomment if using token auth
-    }
+    },
+    credentials: 'include'  // Add this line to ensure credentials are sent
   };
 });
 
@@ -58,9 +62,17 @@ const cache = new InMemoryCache({
 const client = new ApolloClient({
   link: authLink.concat(httpLink),
   cache,
+  credentials: 'include',  // Add this line
   defaultOptions: {
     watchQuery: {
       fetchPolicy: 'cache-and-network',
+    },
+    query: {
+      fetchPolicy: 'network-only',  // Add this to ensure fresh data
+      errorPolicy: 'all'
+    },
+    mutate: {
+      errorPolicy: 'all'
     }
   }
 });

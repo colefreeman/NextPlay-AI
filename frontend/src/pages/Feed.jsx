@@ -5,9 +5,11 @@ import MainFeed from '../components/Feed/MainFeed';
 import CreatePost from '../components/Feed/CreatePost';
 import LoadingState from '../components/Shared/LoadingState';
 import ErrorState from '../components/Shared/ErrorState';
-import { GET_FEED } from '../graphql/queries/feedQueries';
+import { GET_FEED, validateFeedResponse, monitorQueryPerformance, debugFeedQuery } from '../graphql/queries/feedQueries';
 
 const Feed = () => {
+  console.log('Feed component rendered');
+  
   // eslint-disable-next-line
   const [feedFilter, setFeedFilter] = useState({ 
     visibility: ['PUBLIC'],
@@ -15,15 +17,66 @@ const Feed = () => {
     categories: null
   });
   const [pageSize] = useState(10);
+  const [queryStartTime] = useState(Date.now());
 
-  const { loading, error, data, fetchMore } = useQuery(GET_FEED, {
+  // Enhanced debugging - log initial props
+  console.log('Initial Feed Props:', {
+    feedFilter,
+    pageSize,
+    timestamp: new Date().toISOString()
+  });
+
+  const { loading, error, data, fetchMore, client } = useQuery(GET_FEED, {
     variables: {
       filter: feedFilter,
       pagination: { limit: pageSize }
-    }
+    },
+    onError: (error) => {
+      debugFeedQuery(error);
+      console.error('Feed Query Error:', {
+        message: error.message,
+        networkError: error.networkError?.result?.errors || error.networkError,
+        graphQLErrors: error.graphQLErrors,
+        operation: error.operation?.operationName,
+        variables: error.operation?.variables,
+        status: error.networkError?.statusCode,
+        clientReady: client?.isReady?.(),
+        queryManager: client?.queryManager?.state,
+        timestamp: new Date().toISOString()
+      });
+    },
+    onCompleted: (data) => {
+      const duration = monitorQueryPerformance('GET_FEED', queryStartTime);
+      const validation = validateFeedResponse(data);
+      
+      console.log('Query completed:', {
+        duration: `${duration}ms`,
+        validationResult: validation,
+        dataExists: !!data,
+        feedExists: !!data?.feed,
+        postsCount: data?.feed?.posts?.length,
+        timestamp: new Date().toISOString()
+      });
+    },
+    fetchPolicy: 'network-only',
+    errorPolicy: 'all',
+    notifyOnNetworkStatusChange: true
+  });
+
+  console.log('Query state:', { 
+    loading, 
+    hasError: !!error, 
+    hasData: !!data,
+    timestamp: new Date().toISOString()
   });
 
   const handleLoadMore = () => {
+    const loadMoreStartTime = Date.now();
+    console.log('Loading more posts...', {
+      currentEndCursor: data?.feed?.pageInfo?.endCursor,
+      timestamp: new Date().toISOString()
+    });
+    
     if (data?.feed?.pageInfo?.endCursor) {
       fetchMore({
         variables: {
@@ -32,19 +85,59 @@ const Feed = () => {
             limit: pageSize
           }
         }
+      }).then(() => {
+        monitorQueryPerformance('LOAD_MORE', loadMoreStartTime);
+        console.log('Successfully loaded more posts', {
+          timestamp: new Date().toISOString()
+        });
+      }).catch((error) => {
+        debugFeedQuery(error);
+        console.error('Error loading more posts:', {
+          error,
+          timestamp: new Date().toISOString()
+        });
       });
     }
   };
 
   const handleFilterChange = (newFilters) => {
+    console.log('Applying new filters:', {
+      currentFilters: feedFilter,
+      newFilters,
+      timestamp: new Date().toISOString()
+    });
     setFeedFilter(prev => ({
       ...prev,
       ...newFilters
     }));
   };
 
-  if (loading && !data) return <LoadingState />;
-  if (error) return <ErrorState error={error} />;
+  if (loading && !data) {
+    console.log('Showing loading state', {
+      timestamp: new Date().toISOString()
+    });
+    return <LoadingState />;
+  }
+  
+  if (error) {
+    console.log('Showing error state:', {
+      error,
+      timestamp: new Date().toISOString()
+    });
+    return <ErrorState error={error} />;
+  }
+
+  // Validate data before rendering
+  const validation = validateFeedResponse(data);
+  if (!validation.isValid) {
+    console.warn('Feed data validation failed:', validation.issues);
+  }
+
+  console.log('Rendering feed with data:', {
+    postsCount: data?.feed?.posts?.length,
+    hasNextPage: data?.feed?.pageInfo?.hasNextPage,
+    timestamp: new Date().toISOString()
+  });
 
   return (
     <div className="max-w-2xl mx-auto p-4">
@@ -105,9 +198,10 @@ const Feed = () => {
       </div>
 
       <MainFeed 
-        posts={data?.feed?.posts} 
+        key={JSON.stringify(feedFilter)}
+        posts={data?.feed?.posts || []} 
         onLoadMore={handleLoadMore}
-        hasMore={data?.feed?.pageInfo?.hasNextPage}
+        hasMore={Boolean(data?.feed?.pageInfo?.hasNextPage)}
       />
     </div>
   );

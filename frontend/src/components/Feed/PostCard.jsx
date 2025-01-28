@@ -28,6 +28,19 @@ const PostCard = ({ post }) => {
     }
   };
 
+  const formatDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      if (!isNaN(date.getTime())) {
+        return formatDistanceToNow(date, { addSuffix: true });
+      }
+      return 'Recently';
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Recently';
+    }
+  };
+
   return (
     <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
       {/* Post Header */}
@@ -40,7 +53,7 @@ const PostCard = ({ post }) => {
         <div>
           <h3 className="font-medium text-white">{post.author.name}</h3>
           <p className="text-sm text-gray-400">
-            {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
+            {formatDate(post.createdAt)}
           </p>
         </div>
       </div>
@@ -114,9 +127,8 @@ const PostCard = ({ post }) => {
       {/* Comments Section */}
       {showComments && (
         <div className="px-4 py-3 border-t border-gray-700">
-          {/* Add comments component here */}
           <div className="space-y-4">
-            {post.engagement.comments.map(comment => (
+            {post.engagement?.comments?.map(comment => (
               <div key={comment.id} className="flex space-x-3">
                 <img
                   src={comment.user.profile?.avatarUrl || '/default-avatar.png'}
@@ -129,7 +141,7 @@ const PostCard = ({ post }) => {
                     <p className="text-gray-300">{comment.content}</p>
                   </div>
                   <div className="mt-1 text-sm text-gray-400">
-                    {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                    {formatDate(comment.createdAt)}
                   </div>
                 </div>
               </div>
