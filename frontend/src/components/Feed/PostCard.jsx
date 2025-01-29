@@ -45,13 +45,20 @@ const PostCard = ({ post }) => {
     <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
       {/* Post Header */}
       <div className="p-4 flex items-center space-x-3">
-        <img
-          src={post.author.profile?.avatarUrl || '/default-avatar.png'}
-          alt={post.author.name}
-          className="w-10 h-10 rounded-full"
-        />
+        <a href={`/profile/${post.author.id}`} className="hover:opacity-75 transition-opacity">
+          <img
+            src={post.author.profilePicture || '/default-profile.png'}
+            alt={post.author.name}
+            className="w-10 h-10 rounded-full object-cover"
+          />
+        </a>
         <div>
-          <h3 className="font-medium text-white">{post.author.name}</h3>
+          <a 
+            href={`/profile/${post.author.id}`}
+            className="font-medium text-white hover:text-blue-400 transition-colors"
+          >
+            <h3>{post.author.name}</h3>
+          </a>
           <p className="text-sm text-gray-400">
             {formatDate(post.createdAt)}
           </p>
@@ -131,9 +138,9 @@ const PostCard = ({ post }) => {
             {post.engagement?.comments?.map(comment => (
               <div key={comment.id} className="flex space-x-3">
                 <img
-                  src={comment.user.profile?.avatarUrl || '/default-avatar.png'}
+                  src={comment.user.profilePicture || '/default-profile.png'}
                   alt={comment.user.name}
-                  className="w-8 h-8 rounded-full"
+                  className="w-8 h-8 rounded-full object-cover"
                 />
                 <div className="flex-1">
                   <div className="bg-gray-700 rounded-lg p-3">
