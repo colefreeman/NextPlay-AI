@@ -23,10 +23,9 @@ const typeDefs = gql`
     lastName: String
     bio: String
     location: String
-    avatarUrl: String
+    profilePicture: String
     joinedDate: String!
     lastActive: String!
-    profileUrl: String
     socialLinks: [SocialLink]
     skills: [String]
     interests: [String]

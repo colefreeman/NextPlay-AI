@@ -245,7 +245,7 @@ const transformedRecords = result.records.map(record => {
       id: author.id,
       name: author.name,
       profile: {
-        avatarUrl: author.avatarUrl || null
+        profilePicture: author.profilePicture || '/default-profile.png'
       }
     },
     content: {
@@ -375,7 +375,7 @@ async getPostAuthor(postId) {
       id: author.id,
       name: author.name,
       profile: {
-        avatarUrl: author.avatarUrl || null
+        profilePicture: author.profilePicture || '/default-profile.png'
       }
     } : null;
   } finally {

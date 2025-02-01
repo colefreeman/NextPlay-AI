@@ -19,7 +19,7 @@ const POST_FIELDS = gql`
       id
       name
       profile {
-        avatarUrl
+        profilePicture
       }
     }
     type
