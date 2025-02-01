@@ -11,6 +11,7 @@ const PostCard = ({ post }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const defaultProfilePicture = '/default-profile.png';
 
   const [engagePost] = useMutation(ENGAGE_POST);
 
@@ -47,9 +48,12 @@ const PostCard = ({ post }) => {
       <div className="p-4 flex items-center space-x-3">
         <a href={`/profile/${post.author.id}`} className="hover:opacity-75 transition-opacity">
           <img
-            src={post.author.profilePicture || '/default-profile.png'}
-            alt={post.author.name}
+            src={post.author.profile?.profilePicture || defaultProfilePicture}
+            alt={`${post.author.name}'s profile`}
             className="w-10 h-10 rounded-full object-cover"
+            onError={(e) => {
+              e.target.src = defaultProfilePicture;
+            }}
           />
         </a>
         <div>
@@ -138,9 +142,12 @@ const PostCard = ({ post }) => {
             {post.engagement?.comments?.map(comment => (
               <div key={comment.id} className="flex space-x-3">
                 <img
-                  src={comment.user.profilePicture || '/default-profile.png'}
-                  alt={comment.user.name}
+                  src={comment.user.profile?.profilePicture || defaultProfilePicture}
+                  alt={`${comment.user.name}'s profile`}
                   className="w-8 h-8 rounded-full object-cover"
+                  onError={(e) => {
+                    e.target.src = defaultProfilePicture;
+                  }}
                 />
                 <div className="flex-1">
                   <div className="bg-gray-700 rounded-lg p-3">
