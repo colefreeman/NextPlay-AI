@@ -1,4 +1,3 @@
-// src/graphql/queries/feedQueries.js
 import { gql } from '@apollo/client';
 
 // Debug function to log query execution with detailed information
@@ -22,7 +21,6 @@ const POST_FIELDS = gql`
         profilePicture
       }
     }
-    type
     content {
       text
       hashtags
@@ -32,14 +30,16 @@ const POST_FIELDS = gql`
       title
     }
     visibility
+    settings {  # This field is non-nullable on the server
+      allowComments
+      allowShares
+      allowReactions
+    }
     createdAt
     metrics {
       likeCount
       commentCount
       shareCount
-    }
-    professional {
-      category
     }
   }
 `;
@@ -53,15 +53,34 @@ const PAGE_INFO_FIELDS = gql`
 
 // Main feed query with logging wrapper and fragments
 export const GET_FEED = gql`
-  ${POST_FIELDS}
-  ${PAGE_INFO_FIELDS}
   query GetFeed($filter: FeedFilter, $pagination: PaginationInput) {
     feed(filter: $filter, pagination: $pagination) {
       posts {
-        ...PostFields
+        id
+        author {
+          id
+          name
+          profile {
+            profilePicture
+          }
+        }
+        content {
+          text
+          hashtags
+          mediaUrls
+          title
+        }
+        visibility
+        createdAt
+        metrics {
+          likeCount
+          commentCount
+          shareCount
+        }
       }
       pageInfo {
-        ...PageInfoFields
+        hasNextPage
+        endCursor
       }
     }
   }
@@ -70,7 +89,7 @@ export const GET_FEED = gql`
 // Trending posts query with logging wrapper and fragments
 export const GET_TRENDING_POSTS = gql`
   ${POST_FIELDS}
-  query GetTrendingPosts($category: ProfessionalCategory) {
+  query GetTrendingPosts($category: String) {
     trending(category: $category) {
       ...PostFields
     }

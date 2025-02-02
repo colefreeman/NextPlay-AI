@@ -10,10 +10,10 @@ const typeDefs = gql`
     email: String!
     password: String
     googleId: String
-    instagramId: String
+    instagramId: Strings
     role: String!
     profile: Profile
-    posts: [Post!]  # Added relationship to posts
+    posts: [Post!]
   }
 
   type Profile {
@@ -36,7 +36,6 @@ const typeDefs = gql`
     url: String!
   }
 
-  # New Post-related types
   type Post {
     id: ID!
     author: User!
@@ -83,7 +82,6 @@ const typeDefs = gql`
     saves: [Save!]!
   }
 
-  # Added engagement-related types
   type Like {
     id: ID!
     user: User!
@@ -131,7 +129,6 @@ const typeDefs = gql`
     storyExpiration: DateTime
   }
 
-  # Location and Team types
   type Location {
     id: ID!
     name: String!
@@ -153,7 +150,6 @@ const typeDefs = gql`
     isFeatured: Boolean!
   }
 
-  # Enums
   enum PostType {
     TEXT
     IMAGE
@@ -166,6 +162,7 @@ const typeDefs = gql`
     IMAGE
     VIDEO
     DOCUMENT
+    TEXT
   }
 
   enum Visibility {
@@ -192,7 +189,6 @@ const typeDefs = gql`
     SHARE
   }
 
-  # Input Types
   input SocialLinkInput {
     platform: String!
     url: String!
@@ -213,9 +209,6 @@ const typeDefs = gql`
     type: PostType!
     content: PostContentInput!
     visibility: Visibility!
-    category: ProfessionalCategory
-    teamId: ID
-    tags: PostTagsInput
   }
 
   input PostContentInput {
@@ -271,7 +264,6 @@ const typeDefs = gql`
     limit: Int = 10
   }
 
-  # Response Types
   type FeedResponse {
     posts: [Post!]!
     pageInfo: PageInfo!
@@ -287,14 +279,11 @@ const typeDefs = gql`
     post: Post!
   }
 
-  # Query and Mutation types
   type Query {
-    # Existing queries
     login(email: String!, password: String!): String
     getProfile(username: String!): Profile
     getCurrentUserProfile: Profile
 
-    # Post queries
     feed(filter: FeedFilter, pagination: PaginationInput): FeedResponse!
     post(id: ID!): Post
     userPosts(userId: ID!, filter: PostFilter): [Post!]!
@@ -303,14 +292,12 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    # Existing mutations
     registerUser(name: String!, email: String!, password: String!, role: String!): User
     linkGoogleAccount(userId: ID!, googleId: String!): User
     linkInstagramAccount(userId: ID!, instagramId: String!): User
     updateProfile(input: ProfileUpdateInput!): Profile
     updateLastActive: Profile
 
-    # Post mutations
     createPost(input: CreatePostInput!): Post!
     updatePost(id: ID!, input: UpdatePostInput!): Post!
     deletePost(id: ID!): Boolean!

@@ -1,99 +1,122 @@
-// resolvers/post.resolver.js
 const postService = require('../services/post.service');
 
 const postResolvers = {
- Query: {
-   post: async (_, { id }) => {
-     return postService.getPost(id);
-   },
-   userPosts: async (_, { userId, filter }) => {
-     return postService.getUserPosts(userId, filter);
-   },
-   teamPosts: async (_, { teamId, filter }) => {
-     return postService.getTeamPosts(teamId, filter);
-   }
- },
+  Query: {
+    post: async (_, { id }) => {
+      try {
+        const post = await postService.getPost(id);
+        if (!post) {
+          throw new Error(`Post not found with id: ${id}`);
+        }
+        return post;
+      } catch (error) {
+        console.error('Error in post query:', error);
+        throw error;
+      }
+    },
 
- Mutation: {
-   createPost: async (_, { input }, { user }) => {
-     return postService.createPost(input, user.id);
-   },
-   updatePost: async (_, { id, input }, { user }) => {
-     return postService.updatePost(id, input, user.id);
-   },
-   deletePost: async (_, { id }, { user }) => {
-     return postService.deletePost(id, user.id);
-   },
-   updatePostSettings: async (_, { postId, settings }, { user }) => {
-     return postService.updateSettings(postId, settings, user.id);
-   }
- }
+    userPosts: async (_, { userId, filter }) => {
+      try {
+        const posts = await postService.getUserPosts(userId, filter);
+        return posts;
+      } catch (error) {
+        console.error('Error in userPosts query:', error);
+        throw error;
+      }
+    },
+
+    teamPosts: async (_, { teamId, filter }) => {
+      try {
+        const posts = await postService.getTeamPosts(teamId, filter);
+        return posts;
+      } catch (error) {
+        console.error('Error in teamPosts query:', error);
+        throw error;
+      }
+    }
+  },
+
+  Mutation: {
+    createPost: async (_, { input }, { user }) => {
+      try {
+        if (!user || !user.id) {
+          throw new Error('User not authenticated');
+        }
+        
+        console.log('Creating post with input:', input);
+        console.log('User ID:', user.id);
+        
+        const post = await postService.createPost(input, user.id);
+        
+        if (!post) {
+          throw new Error('Failed to create post');
+        }
+        
+        console.log('Created post:', post);
+        return post;
+      } catch (error) {
+        console.error('Error in createPost mutation:', error);
+        throw error;
+      }
+    },
+
+    updatePost: async (_, { id, input }, { user }) => {
+      try {
+        if (!user || !user.id) {
+          throw new Error('User not authenticated');
+        }
+
+        const post = await postService.updatePost(id, input, user.id);
+        
+        if (!post) {
+          throw new Error(`Failed to update post with id: ${id}`);
+        }
+        
+        return post;
+      } catch (error) {
+        console.error('Error in updatePost mutation:', error);
+        throw error;
+      }
+    },
+
+    deletePost: async (_, { id }, { user }) => {
+      try {
+        if (!user || !user.id) {
+          throw new Error('User not authenticated');
+        }
+
+        const result = await postService.deletePost(id, user.id);
+        
+        if (!result) {
+          throw new Error(`Failed to delete post with id: ${id}`);
+        }
+        
+        return result;
+      } catch (error) {
+        console.error('Error in deletePost mutation:', error);
+        throw error;
+      }
+    },
+
+    updatePostSettings: async (_, { postId, settings }, { user }) => {
+      try {
+        if (!user || !user.id) {
+          throw new Error('User not authenticated');
+        }
+
+        const post = await postService.updateSettings(postId, settings, user.id);
+        
+        if (!post) {
+          throw new Error(`Failed to update settings for post with id: ${postId}`);
+        }
+        
+        return post;
+      } catch (error) {
+        console.error('Error in updatePostSettings mutation:', error);
+        throw error;
+      }
+    }
+  }
 };
 
 module.exports = postResolvers;
-
-// resolvers/engagement.resolver.js
-const engagementService = require('../services/engagement.service');
-
-const engagementResolvers = {
- Mutation: {
-   engagePost: async (_, { postId, action }, { user }) => {
-     switch (action) {
-       case 'LIKE':
-         return engagementService.addLike(user.id, postId);
-       case 'UNLIKE':
-         return engagementService.removeLike(user.id, postId);
-       case 'SAVE':
-         return engagementService.savePost(user.id, postId);
-       case 'UNSAVE':
-         return engagementService.unsavePost(user.id, postId);
-       case 'SHARE':
-         return engagementService.sharePost(user.id, postId);
-       default:
-         throw new Error(`Unsupported engagement action: ${action}`);
-     }
-   },
-   addComment: async (_, { postId, content }, { user }) => {
-     return engagementService.addComment(user.id, postId, content);
-   },
-   addReply: async (_, { commentId, content }, { user }) => {
-     return engagementService.addReply(user.id, commentId, content);
-   }
- }
-};
-
-module.exports = engagementResolvers;
-
-// resolvers/feed.resolver.js
-const feedService = require('../services/feed.service');
-
-const feedResolvers = {
- Query: {
-   feed: async (_, { filter, pagination }, { user }) => {
-     return feedService.getFeed(filter, pagination);
-   },
-   trending: async (_, { category }) => {
-     return feedService.getTrendingPosts(category);
-   }
- },
-
- Post: {
-   metrics: async (post) => ({
-     viewCount: post.viewCount || 0,
-     likeCount: post.likeCount || 0,
-     commentCount: post.commentCount || 0,
-     shareCount: post.shareCount || 0,
-     saveCount: post.saveCount || 0,
-     impressionCount: post.impressionCount || 0,
-     engagementRate: post.engagementRate || 0
-   }),
-   engagement: async (post) => ({
-     likes: post.likes || [],
-     comments: post.comments || [],
-     shares: post.shares || [],
-     saves: post.saves || []
-   })
- }
-};
-
-module.exports = feedResolvers;
