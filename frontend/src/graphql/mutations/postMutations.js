@@ -1,4 +1,3 @@
-// src/graphql/mutations/postMutations.js
 import { gql } from '@apollo/client';
 
 export const CREATE_POST = gql`
@@ -6,6 +5,13 @@ export const CREATE_POST = gql`
     createPost(input: $input) {
       id
       type
+      author {
+        id
+        name
+        profile {
+          profilePicture
+        }
+      }
       content {
         text
         hashtags
@@ -13,13 +19,11 @@ export const CREATE_POST = gql`
         title
       }
       visibility
-      professional {
-        category
-      }
-      settings {
-        allowComments
-        allowShares
-        allowReactions
+      createdAt
+      metrics {
+        likeCount
+        commentCount
+        shareCount
       }
     }
   }
@@ -40,9 +44,8 @@ export const UPDATE_POST = gql`
         allowComments
         allowShares
         allowReactions
-        isPinned
-        isFeatured
       }
+      createdAt
     }
   }
 `;

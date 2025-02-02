@@ -1,5 +1,10 @@
-// resolvers/feed.resolver.js
 const feedService = require('../services/feed.service');
+
+const DEFAULT_POST_SETTINGS = {
+  allowComments: true,
+  allowShares: true,
+  allowReactions: true
+};
 
 const feedResolvers = {
   Query: {
@@ -82,6 +87,11 @@ const feedResolvers = {
       comments: await feedService.getPostComments(post.id),
       shares: await feedService.getPostShares(post.id), 
       saves: await feedService.getPostSaves(post.id)
+    }),
+
+    settings: async (post) => ({
+      ...DEFAULT_POST_SETTINGS,
+      ...(post.settings || {})  // Override defaults with any existing settings
     }),
 
     professional: async (post) => {
